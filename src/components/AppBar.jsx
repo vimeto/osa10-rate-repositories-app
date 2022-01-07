@@ -1,8 +1,14 @@
-import React from 'react';
-import { View, StyleSheet, Text, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Text, ScrollView, TouchableOpacity } from 'react-native';
 import Constants from 'expo-constants';
 import theme from '../theme';
 import { Link } from 'react-router-native';
+import { useQuery } from '@apollo/client';
+import { useApolloClient } from "@apollo/client";
+import useAuthStorage from "../hooks/useAuthStorage";
+
+
+import { GET_AUTHORIZED_USER } from './graphql/queries';
 
 const styles = StyleSheet.create({
   container: {
@@ -23,19 +29,42 @@ const styles = StyleSheet.create({
 });
 
 const AppBarEntry = ({ text, address }) => {
-  return (
-    <Link to={address}>
-      <Text style={styles.entry}>{ text }</Text>
-      </Link>
-  );
+  const authStorage = useAuthStorage();
+  const apolloClient = useApolloClient();
+  const onSignOut = async () => {
+    await authStorage.removeAccessToken();
+    await apolloClient.resetStore();
+  };
+  if (address) {
+    return (
+      <Link to={address}>
+        <Text style={styles.entry}>{ text }</Text>
+        </Link>
+    );
+  } else {
+    return (
+      <TouchableOpacity onPress={onSignOut}>
+        <Text style={styles.entry}>{ text + 'ass' }</Text>
+        </TouchableOpacity>
+    );
+  }
 };
 
 const AppBar = () => {
+  const { data } = useQuery(GET_AUTHORIZED_USER);
+  const [loggedUser, setLoggedUser] = useState(null);
+
+  useEffect(() => {
+    if (data) {
+      setLoggedUser(data.authorizedUser);
+    }
+  }, [data]);
+
   return (
     <View style={styles.container}>
       <ScrollView horizontal>
         <AppBarEntry text='Repositories' address='/' />
-        <AppBarEntry text='Sign In' address='/signIn' />
+        { loggedUser ? <AppBarEntry text='Logout' /> : <AppBarEntry text='Sign In' address='/signIn' /> }
       </ScrollView>
     </View>
     );
