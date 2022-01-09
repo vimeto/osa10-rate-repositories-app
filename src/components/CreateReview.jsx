@@ -60,7 +60,7 @@ const CreateReviewForm = ({ onSubmit }) => {
       <FormikTextInput style={styles.formEntry} name="text" placeholder="Open review" />
       <View style={styles.formEntryButtonView}>
         <Pressable onPress={onSubmit} testID='submitButton'>
-          <Text style={styles.formEntryButton}>Login</Text>
+          <Text style={styles.formEntryButton}>Publish review</Text>
         </Pressable>
       </View>
     </View>

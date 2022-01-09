@@ -67,6 +67,8 @@ class RepositoryListClass extends React.Component {
 				ItemSeparatorComponent={ItemSeparator}
 				renderItem={({item}) => <RepositoryClickableItem item={item} history={props.history} />}
 				ListHeaderComponent={this.renderHeader}
+        onEndReached={props.onEndReached}
+        onEndReachedThreshold={0.5}
 			/>
 		);
 	}
@@ -76,8 +78,10 @@ const RepositoryContainer = () => {
   const [orderVariables, setOrderVariables] = useState();
   const [searchValue, setSearchValue] = useState();
   const [value] = useDebounce(searchValue, 500);
-  const { repositories, refetch } = useRepositories();
+  const { repositories, refetch, fetchMore } = useRepositories(
+    { first: 4 });
   const history = useHistory();
+  const [variables, setVariables] = useState({});
 
   const [repos, setRepos] = useState();
   useEffect(() => {
@@ -87,12 +91,17 @@ const RepositoryContainer = () => {
   }, [repositories]);
   useEffect(() => {
     const [orderBy, orderDirection] = orderVariables ? orderVariables.split(" ") : [undefined, undefined];
-    refetch({
-      orderBy, orderDirection, searchKeyword: value
+    setVariables({
+      orderBy, orderDirection, searchKeyword: value, first: 4
     });
+    refetch(variables);
   }, [orderVariables, value]);
+
+  const onEndReached = () => {
+    fetchMore(variables);
+  };
   return (
-    <RepositoryListClass repositories={repos} oV={orderVariables} sOV={setOrderVariables} sV={searchValue} sSV={setSearchValue} history={history} />
+    <RepositoryListClass repositories={repos} oV={orderVariables} sOV={setOrderVariables} sV={searchValue} sSV={setSearchValue} history={history} onEndReached={onEndReached} />
   );
 };
 

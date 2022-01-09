@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { useParams } from 'react-router-native';
-import { useQuery } from '@apollo/client';
-import { GET_SINGLE_REPO_BY_ID } from './graphql/queries';
+/* import { useQuery } from '@apollo/client';
+import { GET_SINGLE_REPO_BY_ID } from './graphql/queries'; */
 import RepositoryItem from './RepositoryItem';
 import * as Linking from 'expo-linking';
 import theme from '../theme';
 import Text from './Text';
+import useRepository from '../hooks/useRepository';
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   separator: {
     height: 10,
   },
@@ -75,7 +76,7 @@ const styles = StyleSheet.create({
 
 const ItemSeparator = () => <View style={styles.separator} />;
 
-const RepositoryItemSingle = ({ item }) => {
+/* const RepositoryItemSingle = ({ item }) => {
   const onClick = () => {
     Linking.openURL(item.url);
   };
@@ -88,7 +89,7 @@ const RepositoryItemSingle = ({ item }) => {
       </TouchableOpacity>
     </View>
   );
-};
+}; */
 
 const ReviewItem = ({ item }) => {
   const date = item.createdAt.split(/[-T]+/g).splice(0, 3).join('.');
@@ -106,36 +107,81 @@ const ReviewItem = ({ item }) => {
   );
 };
 
-const RepositoryItemPage = () => {
-  const [repository, setRepository] = useState();
-  const [reviews, setReviews] = useState();
-  const id = useParams().id;
-  const { data, loading } = useQuery(GET_SINGLE_REPO_BY_ID, {
-    variables: { id },
-    fetchPolicy: 'cache-and-network'
-  });
-
-  useEffect(() => {
-    if (data && data.repository) {
-      setRepository(data.repository);
-      const r = data.repository.reviews.edges.map(e => e.node);
-      setReviews(r);
-    }
-  }, [data]);
-
-  if (loading || !repository) return <Text>Loading...</Text>;
-
+const RepoHeader = ({ repository }) => {
+  const item = repository;
+  const onClick = () => {
+    Linking.openURL(item.url);
+  };
   return (
-    <View style={{ flex: 1 }}>
-      <FlatList
-        style={styles.flatlist}
-        data={reviews}
-        ItemSeparatorComponent={ItemSeparator}
-        renderItem={ReviewItem}
-        ListHeaderComponent={() => <RepositoryItemSingle item={repository} />}
-      />
+    <View style={styles.repoItem}>
+      <RepositoryItem item={item} />
+      <TouchableOpacity style={styles.urlButton} onPress={onClick}>
+        <Text style={styles.urlButtonText}>Open in GitHub</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
-export default RepositoryItemPage;
+const RepositoryItemPage = ({ repository, reviews, loading, onEndReached }) => {
+  const [repo, setRepo] = useState();
+  const [repoReviews, setRepoReviews] = useState();
+
+  useEffect(() => {
+    setRepo(repository);
+  }, [repository]);
+
+  useEffect(() => {
+    setRepoReviews(reviews);
+  });
+
+  return (
+    <>
+      { loading || !repo ? <Text>sdjklfalsdkjfhaösdfjkasödfj</Text> : (
+        <View style={{ flex: 1 }}>
+          <FlatList
+            style={styles.flatlist}
+            data={repoReviews}
+            ItemSeparatorComponent={ItemSeparator}
+            renderItem={ReviewItem}
+            ListHeaderComponent={() => <RepoHeader repository={repo} />}
+            onEndReached={onEndReached}
+            onEndReachedThreshold={0.0}
+            keyExtractor={(item, index) => `${item.id}${index}`}
+          />
+        </View>
+      )}
+    </>
+  );
+};
+
+const RepositoryItemPageContainer = () => {
+  const variables = { id: useParams().id, first: 4 };
+  const { repository, reviews, loading, fetchMore } = useRepository(variables);
+  const [repo, setRepo] = useState();
+  const [repoReviews, setRepoReviews] = useState();
+
+  useEffect(() => {
+    if (repository) {
+      console.log('called');
+      setRepoReviews(reviews);
+      if (!repo) {
+        console.log('called 2');
+        setRepo(repository);
+      }
+    }
+  }, [loading, reviews]);
+
+  const onEndReached = () => {
+    fetchMore();
+  };
+
+  if (loading || !repo) {
+    return null;
+  }
+
+  return (
+    <RepositoryItemPage loading={loading} repository={repo} reviews={repoReviews} onEndReached={onEndReached} />
+  );
+};
+
+export default RepositoryItemPageContainer;

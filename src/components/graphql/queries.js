@@ -1,8 +1,20 @@
 import { gql } from "@apollo/client";
 
 export const GET_REPOSITORIES  = gql`
-query getAllWithFilter($orderBy: AllRepositoriesOrderBy, $orderDirection: OrderDirection, $searchKeyword: String) {
-  repositories(orderBy: $orderBy, orderDirection: $orderDirection, searchKeyword: $searchKeyword) {
+query getAllWithFilter(
+    $orderBy: AllRepositoriesOrderBy, 
+    $orderDirection: OrderDirection, 
+    $searchKeyword: String
+    $first: Int,
+    $after: String
+    ) {
+  repositories(
+    orderBy: $orderBy,
+    orderDirection: $orderDirection, 
+    searchKeyword: $searchKeyword
+    first: $first,
+    after: $after
+    ) {
     edges {
       node {
         id
@@ -16,22 +28,46 @@ query getAllWithFilter($orderBy: AllRepositoriesOrderBy, $orderDirection: OrderD
         reviewCount
         ratingAverage
       }
+      cursor
+    }
+    pageInfo {
+      endCursor
+      startCursor
+      hasNextPage
     }
   }
 }
 `;
 
 export const GET_AUTHORIZED_USER = gql`
-query {
+query getAuthorizedUser($includeReviews: Boolean = false) {
   authorizedUser {
     id
     username
+    reviews @include(if: $includeReviews) {
+      edges {
+        node {
+          id
+          text
+          rating
+          createdAt
+          repository {
+            fullName
+            url
+          }
+          user {
+            id
+            username
+          }
+        }
+      }
+    }
   }
 }
 `;
 
 export const GET_SINGLE_REPO_BY_ID = gql`
-query singleRepo($id: ID!) {
+query singleRepo($id: ID!, $first: Int, $after: String) {
   repository(id: $id) {
     id
     fullName
@@ -44,7 +80,8 @@ query singleRepo($id: ID!) {
     forksCount
     reviewCount
     ratingAverage
-    reviews {
+    reviews(first: $first, after: $after) {
+      totalCount
       edges {
         node {
           id
@@ -56,6 +93,12 @@ query singleRepo($id: ID!) {
             username
           }
         }
+        cursor
+      }
+      pageInfo {
+        endCursor
+        startCursor
+        hasNextPage
       }
     }
   }

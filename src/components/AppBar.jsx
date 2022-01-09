@@ -56,6 +56,7 @@ const AppBar = () => {
 
   useEffect(() => {
     if (data) {
+      /* console.log(data); */
       setLoggedUser(data.authorizedUser);
     }
   }, [data]);
@@ -67,6 +68,7 @@ const AppBar = () => {
         { loggedUser
           ? <>
               <AppBarEntry text='Create a review' address='/createReview' />
+              <AppBarEntry text='My reviews' address='/myReviews' />
               <AppBarEntry text='Logout' />
             </>
           : <>
