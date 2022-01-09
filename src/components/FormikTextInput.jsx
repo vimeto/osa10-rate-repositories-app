@@ -14,11 +14,11 @@ const styles = StyleSheet.create({
     fontSize: 15
   },
   textInput: {
-    fontSize: 30,
+    fontSize: 25,
     textAlign: 'left',
     /* backgroundColor: 'red', */
     marginVertical: 10,
-    paddingVertical: 5,
+    paddingVertical: 7,
     paddingHorizontal: 10,
     borderRadius: 7,
     borderWidth: 1,

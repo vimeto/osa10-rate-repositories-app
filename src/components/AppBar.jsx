@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
   },
   entry: {
     color: theme.colors.appBarText,
-    paddingHorizontal: 25,
+    paddingHorizontal: 15,
     paddingVertical: 15,
     fontSize: theme.fontSizes.subheading,
     fontWeight: theme.fontWeights.bold
@@ -44,7 +44,7 @@ const AppBarEntry = ({ text, address }) => {
   } else {
     return (
       <TouchableOpacity onPress={onSignOut}>
-        <Text style={styles.entry}>{ text + 'ass' }</Text>
+        <Text style={styles.entry}>{ text }</Text>
         </TouchableOpacity>
     );
   }
@@ -64,7 +64,15 @@ const AppBar = () => {
     <View style={styles.container}>
       <ScrollView horizontal>
         <AppBarEntry text='Repositories' address='/' />
-        { loggedUser ? <AppBarEntry text='Logout' /> : <AppBarEntry text='Sign In' address='/signIn' /> }
+        { loggedUser
+          ? <>
+              <AppBarEntry text='Create a review' address='/createReview' />
+              <AppBarEntry text='Logout' />
+            </>
+          : <>
+              <AppBarEntry text='Sign In' address='/signIn' />
+              <AppBarEntry text='Sign Up' address='/signUp' />
+            </> }
       </ScrollView>
     </View>
     );
